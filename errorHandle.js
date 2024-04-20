@@ -10,7 +10,7 @@ function errorHandle(res, error) {
     if(error){
         message = error.message;
     }else{
-        message = "欄位為填寫正確或無此id";
+        message = "欄位未填寫正確或無此id";
     }
     res.write(JSON.stringify({
         "status": "false",

@@ -6,7 +6,7 @@ const dotenv= require('dotenv');
 
 dotenv.config({path:"./config.env"});
 
-const DB = process.env.DATABASE.replace(
+const DB = process.env.DATABASE_REMOTE.replace(
     '<password>',
     encodeURIComponent(process.env.DATABASE_PASSWORD)
 )
@@ -70,6 +70,23 @@ const requestListener = async(req, res)=>{
             "data": null,
         }));
         res.end();
+    }else if(req.url.startsWith('/posts/') && req.method == 'PATCH') {
+        req.on('end', async()=> {
+			try{
+				const postId = req.url.split('/').pop();
+				const updatedPostData = JSON.parse(body); 
+				const posts = await Post.findByIdAndUpdate({_id: postId}, updatedPostData, { new: true }); 
+                console.log(posts);
+				res.writeHead(200, headers);
+				res.write(JSON.stringify({
+					"status": "success",
+					"data": posts
+				}));
+				res.end();
+			}catch{
+                errorHandle(res)
+			}
+		})
     }else if(req.method == "OPTIONS"){
         res.writeHead(200,headers);
         res.end();
