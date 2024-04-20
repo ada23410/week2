@@ -6,7 +6,7 @@ const dotenv= require('dotenv');
 
 dotenv.config({path:"./config.env"});
 
-const DB = process.env.DATABASE_REMOTE.replace(
+const DB = process.env.DATABASE.replace(
     '<password>',
     encodeURIComponent(process.env.DATABASE_PASSWORD)
 )
