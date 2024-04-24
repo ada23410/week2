@@ -4,16 +4,16 @@ const errorHandle = require('./errorHandle')
 const mongoose = require('mongoose');
 const dotenv= require('dotenv');
 
-dotenv.config({path:"./config.env"});
+// dotenv.config({path:"./config.env"});
 
-const DB = process.env.DATABASE.replace(
-    '<password>',
-    encodeURIComponent(process.env.DATABASE_PASSWORD)
-)
+// const DB = process.env.DATABASE.replace(
+//     '<password>',
+//     encodeURIComponent(process.env.DATABASE_PASSWORD)
+// )
 
-mongoose.connect(DB)
+mongoose.connect('mongodb://localhost:27017/social')
 .then(()=> {console.log('資料庫連線成功')})
-.catch((error)=> {console.log(error)});
+.catch((error)=> {console.log('資料連線失敗',error)});
 
 const requestListener = async(req, res)=>{
     const headers = {
@@ -28,22 +28,26 @@ const requestListener = async(req, res)=>{
     })
     
     if(req.url=="/posts" && req.method == "GET"){
-        const post = await Post.find();
-        res.writeHead(200,headers);
-        res.write(JSON.stringify({
-            "status": "success",
-            post
-        }));
-        res.end();
+        try{
+            const post = await Post.find();
+            res.writeHead(200,headers);
+            res.write(JSON.stringify({
+                "status": "success",
+                post
+            }));
+            res.end();
+        }catch(error){
+            errorHandle(res, error)
+        }
     }else if(req.url=="/posts" && req.method == "POST"){
         req.on('end',async()=>{
             try{
                 const data = JSON.parse(body);
-                if(data.content){
+                if(data.content && data.content.trim() !== ''){
                     const newPost = await Post.create(
                         {
                             name: data.name,
-                            content: data.content,
+                            content: data.content.trim(),
                             tags: data.tags,
                             type: data.type
                         }
@@ -61,30 +65,53 @@ const requestListener = async(req, res)=>{
                 errorHandle(res, error)
             }
         })
+    }else if (req.url=="/posts" && req.method == "DELETE"){
+        try{
+            await Post.deleteMany({});
+            res.writeHead(200, headers);
+            res.write(JSON.stringify({
+                "status": "success",
+                data: []
+            }));
+            res.end();
+        }catch (error) {
+            errorHandle(res, error)
+        }
     }else if(req.url.startsWith("/posts/") && req.method=="DELETE"){
         const id = req.url.split('/').pop();
-        await Post.findByIdAndDelete(id);
-        res.writeHead(200,headers);
-        res.write(JSON.stringify({
-            "status": "success",
-            "data": null,
-        }));
-        res.end();
+        try{
+            const deletePost = await Post.findByIdAndDelete(id);
+            if(deletePost){
+                res.writeHead(200,headers);
+                res.write(JSON.stringify({
+                    "status": "success",
+                    "data": null,
+                }));
+                res.end();
+            }else{
+                errorHandle(res)
+            }
+        }catch (error){
+            errorHandle(res, error)
+        }
     }else if(req.url.startsWith('/posts/') && req.method == 'PATCH') {
         req.on('end', async()=> {
 			try{
 				const postId = req.url.split('/').pop();
 				const updatedPostData = JSON.parse(body); 
 				const posts = await Post.findByIdAndUpdate({_id: postId}, updatedPostData, { new: true }); 
-                console.log(posts);
-				res.writeHead(200, headers);
-				res.write(JSON.stringify({
-					"status": "success",
-					"data": posts
-				}));
-				res.end();
+                if(posts){
+                    res.writeHead(200, headers);
+                    res.write(JSON.stringify({
+                        "status": "success",
+                        "data": posts
+                    }));
+                    res.end();
+                }else{
+                    errorHandle(res)
+                }
 			}catch{
-                errorHandle(res)
+                errorHandle(res, error)
 			}
 		})
     }else if(req.method == "OPTIONS"){
