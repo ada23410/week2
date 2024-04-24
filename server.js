@@ -4,14 +4,14 @@ const errorHandle = require('./errorHandle')
 const mongoose = require('mongoose');
 const dotenv= require('dotenv');
 
-// dotenv.config({path:"./config.env"});
+dotenv.config({path:"./config.env"});
 
-// const DB = process.env.DATABASE.replace(
-//     '<password>',
-//     encodeURIComponent(process.env.DATABASE_PASSWORD)
-// )
+const DB = process.env.DATABASE.replace(
+    '<password>',
+    encodeURIComponent(process.env.DATABASE_PASSWORD)
+)
 
-mongoose.connect('mongodb://localhost:27017/social')
+mongoose.connect(DB)
 .then(()=> {console.log('資料庫連線成功')})
 .catch((error)=> {console.log('資料連線失敗',error)});
 
