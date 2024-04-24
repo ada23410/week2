@@ -77,6 +77,26 @@
 			"response": []
 		},
 		{
+			"name": "刪除全部貼文",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://week2-a17b.onrender.com/posts",
+					"protocol": "https",
+					"host": [
+						"week2-a17b",
+						"onrender",
+						"com"
+					],
+					"path": [
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "修改單筆貼文",
 			"request": {
 				"method": "PATCH",
